@@ -1,7 +1,7 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{0391C84F-9088-9221-F838-DA9E7BF8DD29}") = "GGJ-2017-StockWave", "Assembly-CSharp.csproj", "{F39D0885-7154-C57E-BE48-E18430A0221B}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GGJ-2017-StockWave", "Assembly-CSharp.csproj", "{F39D0885-7154-C57E-BE48-E18430A0221B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
