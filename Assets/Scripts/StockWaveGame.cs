@@ -21,7 +21,6 @@ namespace GJJ2017StockWave {
 
 		public int emotionWaveThreshold = 10;
 		public int sadBelow = 3;
-		public float emotionTickInterval = 3f;
 
 		public Text myCapitalText;
 		public Text myStockNumberText;
@@ -40,8 +39,8 @@ namespace GJJ2017StockWave {
 
 		int myCapital;
 		int myStockNumber;
-		int lastStockPriceForEmotion;
-		float lastEmotionTime;
+		int lastEmotionPrice;
+		int peakPriceSinceLastEmotion;
 
 		public static StockWaveGame instance;
 
@@ -60,9 +59,8 @@ namespace GJJ2017StockWave {
 		// Use this for initialization
 		void Awake () {
 			instance = this;
-			lastStockPriceForEmotion = curStockPrice = initialStockPrice;
-			//SimpleRNG.SetSeedFromSystemTime ();
-			SimpleRNG.SetSeed (1952963668, 3696519570);
+			SimpleRNG.SetSeedFromSystemTime ();
+			//SimpleRNG.SetSeed (1952963668, 3696519570);
 			Debug.Log ("Seed1: " + SimpleRNG.GetSeed1 () + ", Seed2: " + SimpleRNG.GetSeed2 ());
 		}
 
@@ -91,7 +89,7 @@ namespace GJJ2017StockWave {
 					longTimeMeanTimeDeltaAccumulated = 0f;
 				} else {
 				*/
-				nextStockPrice = (int)SimpleRNG.GetNormal (curStockPrice, standardDeviation);
+				nextStockPrice = (int)SimpleRNG.GetNormal (curStockPrice + 1, standardDeviation);
 				Debug.Log ("mean = prevStockPrice = " + curStockPrice);
 			}
 
@@ -130,7 +128,8 @@ namespace GJJ2017StockWave {
 			lastedTime = 0f;
 			highestCapital = myInitialCapital;
 
-			Happy ();
+			curStockPrice = lastEmotionPrice = peakPriceSinceLastEmotion = initialStockPrice;
+			happyEmotion.SetActive (true);
 		}
 
 		public bool IsGameOver () {
@@ -171,7 +170,33 @@ namespace GJJ2017StockWave {
 			if (stockPriceUpdateTimeDeltaAccumulated >= stockPriceUpdateTimeUnit) {
 				int nextStockPrice = GenerateNextStockPrice ();
 				stockPriceDelta = nextStockPrice - curStockPrice;
+
 				SetStockPrice (nextStockPrice);
+
+				// emotion
+				if (happyEmotion.activeSelf) {
+					if (curStockPrice > peakPriceSinceLastEmotion) {
+						peakPriceSinceLastEmotion = curStockPrice;
+						#if false
+						if (curStockPrice - lastEmotionPrice > emotionWaveThreshold) {
+							Happy ();
+						}
+						#endif
+					} else if (peakPriceSinceLastEmotion - curStockPrice > emotionWaveThreshold) {
+						Sad ();
+					}
+				} else {
+					if (curStockPrice < peakPriceSinceLastEmotion) {
+						peakPriceSinceLastEmotion = curStockPrice;
+						#if false
+						if (lastEmotionPrice - curStockPrice > emotionWaveThreshold) {
+							Sad ();
+						}
+						#endif
+					} else if (curStockPrice - peakPriceSinceLastEmotion > emotionWaveThreshold) {
+						Happy ();
+					}
+				}
 
 				Wave.instance.UpdateWave ();
 
@@ -187,35 +212,23 @@ namespace GJJ2017StockWave {
 				}
 				capitalReduceTimeDeltaAccumulated = 0f;
 			}
-
-			// emotion
-			if (Time.time - lastEmotionTime >= emotionTickInterval) {
-				if (curStockPrice < sadBelow) {
-					Sad ();
-				} else if (curStockPrice - lastStockPriceForEmotion >= emotionWaveThreshold) {
-					Happy ();
-				} else if (curStockPrice - lastStockPriceForEmotion <= -emotionWaveThreshold) {
-					Sad ();
-				}
-				lastStockPriceForEmotion = curStockPrice;
-			}
 		}
 
 		void Happy () {
-			if (!happyEmotion.activeSelf) {
+			if (sadEmotion.activeSelf) {
 				happyEmotion.SetActive (true);
 				sadEmotion.SetActive (false);
 				happyAudio.Play ();
-				lastEmotionTime = Time.time;
+				lastEmotionPrice = peakPriceSinceLastEmotion = curStockPrice;
 			}
 		}
 
 		void Sad () {
-			if (!sadEmotion.activeSelf) {
+			if (happyEmotion.activeSelf) {
 				happyEmotion.SetActive (false);
 				sadEmotion.SetActive (true);
 				sadAudio.Play ();
-				lastEmotionTime = Time.time;
+				lastEmotionPrice = peakPriceSinceLastEmotion = curStockPrice;
 			}
 		}
 
