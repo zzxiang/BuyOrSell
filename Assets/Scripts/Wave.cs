@@ -46,48 +46,48 @@ namespace GJJ2017StockWave {
 			yPadding = transform.InverseTransformPoint (yPaddingWorld).y;
 
 			lineRenderer = GetComponent<LineRenderer> ();
-			positions = new Vector3[lineRenderer.numPositions * 100];
+			positions = new Vector3[lineRenderer.positionCount * 100];
 			positions[0] = initialPosition = lineRenderer.GetPosition (0);
 		}
 
 		public void Reset () {
-			lineRenderer.numPositions = 1;
+			lineRenderer.positionCount = 1;
 			lineRenderer.SetPosition (0, initialPosition);
 		}
 		
 		public void UpdateWave () {
-			if (positions.Length <= lineRenderer.numPositions) {
-				Vector3[] newPositions = new Vector3[2 * lineRenderer.numPositions];
+			if (positions.Length <= lineRenderer.positionCount) {
+				Vector3[] newPositions = new Vector3[2 * lineRenderer.positionCount];
 				Array.Copy (positions, newPositions, positions.Length);
 				positions = newPositions;
 			}
 
-			Vector3 newPos = lineRenderer.GetPosition (lineRenderer.numPositions - 1);
+			Vector3 newPos = lineRenderer.GetPosition (lineRenderer.positionCount - 1);
 			newPos.x += xUnit;
 			newPos.y += yMagnitudePerStockPrice * StockWaveGame.instance.GetStockPriceDelta();
 
 			if (newPos.x <= xMax) {
-				positions[lineRenderer.numPositions] = newPos;
-				lineRenderer.numPositions = lineRenderer.numPositions + 1;
-				lineRenderer.SetPosition (lineRenderer.numPositions - 1, newPos);
+				positions[lineRenderer.positionCount] = newPos;
+				lineRenderer.positionCount = lineRenderer.positionCount + 1;
+				lineRenderer.SetPosition (lineRenderer.positionCount - 1, newPos);
 			} else {
 				// Remove index 0
-				for (int i = 0; i < lineRenderer.numPositions - 1; ++i) {
+				for (int i = 0; i < lineRenderer.positionCount - 1; ++i) {
 					positions [i] = positions [i + 1];
 				}
-				positions [lineRenderer.numPositions - 1] = newPos;
-				for (int i = 0; i < lineRenderer.numPositions; ++i) {
+				positions [lineRenderer.positionCount - 1] = newPos;
+				for (int i = 0; i < lineRenderer.positionCount; ++i) {
 					positions [i].x -= xUnit;
 				}
 				lineRenderer.SetPositions (positions);
 			}
 
-			newPos = positions [lineRenderer.numPositions - 1];
+			newPos = positions [lineRenderer.positionCount - 1];
 			if (newPos.y > yMax || newPos.y < yMin) {
 				float yOld = newPos.y;
 				float yNew = newPos.y > yMax ? yMax - yPadding : yMin + yPadding;
 				float yDelta = yNew - yOld;
-				for (int i = 0; i < lineRenderer.numPositions; ++i) {
+				for (int i = 0; i < lineRenderer.positionCount; ++i) {
 					positions [i].y += yDelta;
 				}
 				lineRenderer.SetPositions (positions);
